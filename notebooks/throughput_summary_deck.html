@@ -1,0 +1,798 @@
+<title>SiteCharge Usage Summary</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F8F5F0; --panel:#ffffff; --panel-2:#ffffff;
+  --ink:#493A3A; --ink-soft:#6E6262; --ink-faint:#6E6262;
+  --line:#E0C8B1; --line-soft:#E6DCD2;
+  --accent:#EB5F36; --accent-soft:#FCE9E3;
+  --u1:#EB5F36; --u2:#78BEDA; --u3:#514898; --u4:#4D6A28;
+  --seq-lo:#F3F1FA; --seq-hi:#514898;
+  --shadow: 0 1px 2px rgba(22,35,44,.04), 0 8px 24px rgba(22,35,44,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f161f; --panel:#182330; --panel-2:#131c26;
+    --ink:#e8eef2; --ink-soft:#9fb0ba; --ink-faint:#6d818c;
+    --line:#2a3946; --line-soft:#233140;
+    --accent:#5b9ce6; --accent-soft:#1c2c3d;
+    --u1:#EB5F36; --u2:#78BEDA; --u3:#514898; --u4:#4D6A28;
+    --seq-lo:#F3F1FA; --seq-hi:#514898;
+    --shadow: 0 1px 2px rgba(0,0,0,.2), 0 8px 28px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f161f; --panel:#182330; --panel-2:#131c26;
+  --ink:#e8eef2; --ink-soft:#9fb0ba; --ink-faint:#6d818c;
+  --line:#2a3946; --line-soft:#233140;
+  --accent:#5b9ce6; --accent-soft:#1c2c3d;
+  --u1:#EB5F36; --u2:#78BEDA; --u3:#514898; --u4:#4D6A28;
+  --seq-lo:#F3F1FA; --seq-hi:#514898;
+  --shadow: 0 1px 2px rgba(0,0,0,.2), 0 8px 28px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,Segoe UI,sans-serif;
+  font-size:14px; line-height:1.5;
+}
+.mono{ font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums; }
+.wrap{ max-width:1120px; margin:0 auto; padding:56px 24px 90px; display:flex; flex-direction:column; gap:28px; }
+
+.masthead{ display:flex; align-items:baseline; justify-content:space-between; padding:0 4px 20px; border-bottom:1px solid var(--line); margin-bottom:4px; }
+.masthead .brand{ font-weight:700; letter-spacing:.04em; font-size:13px; text-transform:uppercase; color:var(--ink-soft); }
+.masthead .brand b{ color:var(--ink); }
+.masthead .range{ font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-faint); }
+
+.slide{
+  background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  box-shadow:var(--shadow); padding:40px 44px 32px; position:relative;
+  display:flex; flex-direction:column; gap:22px;
+}
+.slide .eyebrow{
+  display:flex; align-items:center; gap:10px;
+  font-size:11.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--accent);
+}
+.slide .eyebrow .num{
+  font-family:"IBM Plex Mono",monospace; background:var(--accent-soft); color:var(--accent);
+  border-radius:5px; padding:2px 7px; font-weight:600; letter-spacing:0;
+}
+.slide h1{ font-size:30px; line-height:1.15; font-weight:700; margin:0; text-wrap:balance; letter-spacing:-.01em; }
+.slide h2{ font-size:22px; line-height:1.2; font-weight:700; margin:0; text-wrap:balance; letter-spacing:-.01em; }
+.slide .sub{ color:var(--ink-soft); font-size:14.5px; max-width:62ch; }
+.slide .footer{
+  display:flex; justify-content:space-between; align-items:center;
+  border-top:1px solid var(--line-soft); padding-top:14px; margin-top:auto;
+  font-size:11px; color:var(--ink-faint); font-family:"IBM Plex Mono",monospace;
+}
+
+.grid2{ display:grid; grid-template-columns:1.3fr 1fr; gap:32px; align-items:start; }
+@media (max-width:760px){ .grid2{ grid-template-columns:1fr; } }
+
+.chart-card{ background:var(--panel-2); border:1px solid var(--line-soft); border-radius:10px; padding:16px 18px 8px; }
+.chart-card .cap{ font-size:11.5px; color:var(--ink-faint); padding:10px 2px 2px; }
+.chart-svg{ display:block; width:100%; height:auto; overflow:visible; }
+.chart-svg .grid-line{ stroke:var(--line); stroke-width:1; }
+.chart-svg .axis-line{ stroke:var(--line); stroke-width:1; }
+.chart-svg .tick-label{ font-family:"IBM Plex Mono",monospace; font-size:10.5px; fill:var(--ink-faint); }
+.chart-svg .value-label{ font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:600; fill:var(--ink-soft); }
+.chart-svg .go-live-line{ stroke:var(--ink-faint); stroke-width:1; stroke-dasharray:3,3; opacity:.7; }
+.chart-svg .facet-title{ font-family:"IBM Plex Sans",sans-serif; font-size:11.5px; font-weight:600; }
+.chart-svg .hit{ fill:transparent; }
+.chart-svg .hit:hover{ fill:currentColor; opacity:.06; }
+.chart-svg .crosshair{ stroke:var(--ink-faint); stroke-width:1; stroke-dasharray:2,2; }
+.two-figs{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.two-figs > *{ min-width:0; }
+@media (max-width:700px){ .two-figs{ grid-template-columns:1fr; } }
+.hist-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.hist-grid > *{ min-width:0; }
+.facet{ background:var(--panel); border:1px solid var(--line-soft); border-radius:8px; padding:6px 4px 2px; }
+
+.legend-row{ display:flex; gap:16px; flex-wrap:wrap; padding:0 2px; }
+.legend-item{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ink-soft); }
+.legend-item .sw{ width:10px; height:10px; border-radius:2px; }
+.seq-legend{ display:flex; align-items:center; gap:8px; font-size:10.5px; color:var(--ink-faint); font-family:"IBM Plex Mono",monospace; padding:0 2px; }
+.seq-legend .bar{ width:110px; height:8px; border-radius:4px; background:linear-gradient(to right, var(--seq-lo), var(--seq-hi)); }
+
+.tooltip{
+  position:fixed; display:none; z-index:50; pointer-events:none;
+  background:var(--ink); color:var(--bg); font-family:"IBM Plex Mono",monospace; font-size:11.5px;
+  padding:8px 11px; border-radius:7px; line-height:1.55; box-shadow:var(--shadow); max-width:230px;
+}
+.tooltip b{ font-family:"IBM Plex Sans",sans-serif; font-weight:600; }
+
+.findings{ display:flex; flex-direction:column; gap:14px; }
+.finding{ display:flex; gap:11px; }
+.finding .dot{ flex:none; width:7px; height:7px; border-radius:50%; background:var(--accent); margin-top:7px; }
+.finding p{ margin:0; font-size:14.5px; }
+.finding p b{ font-weight:600; }
+
+.stats-row{ display:flex; gap:10px; flex-wrap:wrap; }
+.stat{ background:var(--panel-2); border:1px solid var(--line-soft); border-radius:9px; padding:11px 15px; min-width:96px; }
+.stat .v{ font-family:"IBM Plex Mono",monospace; font-size:19px; font-weight:600; }
+.stat .l{ font-size:10.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.06em; margin-top:2px; }
+
+table.data{ width:100%; border-collapse:collapse; font-size:13px; }
+table.data th{ text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-weight:600; padding:0 10px 8px 0; border-bottom:1px solid var(--line); }
+table.data td{ padding:9px 10px 9px 0; border-bottom:1px solid var(--line-soft); font-family:"IBM Plex Mono",monospace; }
+table.data td:first-child, table.data th:first-child{ font-family:"IBM Plex Sans",sans-serif; }
+table.data tr:last-child td{ border-bottom:none; }
+.swatch{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:7px; vertical-align:middle; }
+
+.chip-row{ display:flex; gap:10px; flex-wrap:wrap; }
+.chip{ display:flex; align-items:center; gap:7px; background:var(--panel-2); border:1px solid var(--line-soft); border-radius:20px; padding:6px 13px 6px 9px; font-size:12.5px; }
+.chip .sw{ width:9px; height:9px; border-radius:50%; }
+.chip .id{ font-weight:600; }
+.chip .d{ color:var(--ink-faint); font-family:"IBM Plex Mono",monospace; font-size:11px; }
+
+.hero-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:6px; }
+.hero-stats .stat{ min-width:0; }
+@media (max-width:700px){ .hero-stats{ grid-template-columns:1fr; } }
+
+.takeaways{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:16px; counter-reset:tk; }
+.takeaways li{ counter-increment:tk; display:flex; gap:16px; padding:16px 0; border-bottom:1px solid var(--line-soft); }
+.takeaways li:last-child{ border-bottom:none; }
+.takeaways li::before{
+  content:counter(tk,decimal-leading-zero); font-family:"IBM Plex Mono",monospace; font-weight:600;
+  color:var(--accent); font-size:13px; flex:none; padding-top:2px;
+}
+.takeaways b{ display:block; font-weight:600; margin-bottom:3px; }
+.takeaways span{ color:var(--ink-soft); font-size:13.5px; }
+.methodnote{ font-size:12px; color:var(--ink-faint); border-top:1px dashed var(--line); padding-top:14px; }
+</style>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="brand">Sitecharge Fleet <b>· Throughput Summary</b></div>
+    <div class="range">29 JAN – 06 OCT 2026</div>
+  </div>
+
+  <!-- SLIDE 0: TITLE -->
+  <section class="slide">
+    <div class="eyebrow"><span class="num">00</span> DECK OVERVIEW</div>
+    <h1>Sitecharge Fleet: Throughput Summary</h1>
+    <div class="sub">4 Sitecharge units, with throughput, usage rhythm, time of use, round-trip efficiency, charge time, and per-unit usage distribution.</div>
+
+    <div class="hero-stats">
+      <div class="stat"><div class="v">4</div><div class="l">units in fleet</div></div>
+      <div class="stat"><div class="v">~8 months</div><div class="l">29 Jan – 06 Oct 2026</div></div>
+      <div class="stat"><div class="v">398</div><div class="l">cycles analysed, all units</div></div>
+    </div>
+
+    <div class="chip-row">
+      <div class="chip"><span class="sw" style="background:var(--u1)"></span><span class="id">0001</span><span class="d">live 2026-01-29</span></div>
+      <div class="chip"><span class="sw" style="background:var(--u2)"></span><span class="id">0002</span><span class="d">live 2026-02-17</span></div>
+      <div class="chip"><span class="sw" style="background:var(--u3)"></span><span class="id">0003</span><span class="d">live 2026-03-01</span></div>
+      <div class="chip"><span class="sw" style="background:var(--u4)"></span><span class="id">0004</span><span class="d">live 2026-03-11</span></div>
+    </div>
+    <div class="footer"><span>SLIDE 1 / 9</span><span>Sitecharge · THROUGHPUT SUMMARY</span></div>
+  </section>
+
+  <!-- SLIDE 1: FLEET TOTAL THROUGHPUT -->
+  <section class="slide">
+    <div class="eyebrow"><span class="num">01</span> FLEET TOTAL THROUGHPUT</div>
+    <h2>Monthly throughput across the live fleet</h2>
+    <div class="two-figs">
+      <div class="chart-card">
+        <div id="chart-monthly" class="chart"></div>
+        <div class="cap">Fleet total throughput, kWh/month. Dashed lines mark a unit go-live.</div>
+      </div>
+      <div class="chart-card">
+        <div id="chart-per-live" class="chart"></div>
+        <div class="cap">Throughput per <i>live</i> unit, kWh/month (fleet total ÷ units already live that month).</div>
+      </div>
+    </div>
+    <div class="findings">
+      <div class="finding"><span class="dot"></span><p><b>Peak full month: September at 26.1 MWh.</b> The first and last calendar months are partial.</p></div>
+      <div class="finding"><span class="dot"></span><p>Per-live-unit throughput divides monthly fleet output by the average number of live units in that month.</p></div>
+      <div class="finding"><span class="dot"></span><p>Unit go-lives span Jan 29 to Mar 11, so the early months include ramp-up.</p></div>
+    </div>
+    <div class="footer"><span>SLIDE 2 / 9</span><span>Sitecharge · THROUGHPUT SUMMARY</span></div>
+  </section>
+
+  <!-- SLIDE 2: USAGE RHYTHM -->
+  <section class="slide">
+    <div class="eyebrow"><span class="num">02</span> USAGE RHYTHM</div>
+    <h2>Average fleet throughput by day of week</h2>
+    <div class="grid2">
+      <div class="chart-card">
+        <div id="chart-weekday" class="chart"></div>
+        <div class="cap">Average fleet throughput by day of week (kWh), full period.</div>
+      </div>
+      <div>
+        <table class="data" style="margin-bottom:18px;">
+          <tr><th>Day</th><th>Avg fleet kWh</th></tr>
+          <tr><td>Monday</td><td>609.2</td></tr>
+          <tr><td>Tuesday</td><td>778.4</td></tr>
+          <tr><td>Wednesday</td><td>723.4</td></tr>
+          <tr><td>Thursday</td><td>629.5</td></tr>
+          <tr><td>Friday</td><td>569.2</td></tr>
+          <tr><td>Saturday</td><td>239.3</td></tr>
+          <tr><td>Sunday</td><td>10.1</td></tr>
+        </table>
+        <div class="findings">
+          <div class="finding"><span class="dot"></span><p>Tuesday and Wednesday have the highest weekday averages, at 778 and 723 kWh.</p></div>
+          <div class="finding"><span class="dot"></span><p><b>Saturday averages 36% of Monday–Friday</b> (239 kWh); Sunday averages 10.1 kWh.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span>SLIDE 3 / 9</span><span>Sitecharge · THROUGHPUT SUMMARY</span></div>
+  </section>
+
+  <!-- SLIDE 3: TIME OF USE -->
+  <section class="slide">
+    <div class="eyebrow"><span class="num">03</span> TIME OF USE</div>
+    <h2>Weekday charge and discharge by hour</h2>
+    <div class="chart-card">
+      <div id="chart-tou-hourly" class="chart"></div>
+      <div class="legend-row" style="margin-top:8px;">
+        <div class="legend-item"><span class="sw" style="background:var(--u1)"></span>discharge (ac_out_pwr)</div>
+        <div class="legend-item"><span class="sw" style="background:var(--u2)"></span>charge (ac_in_pwr)</div>
+      </div>
+      <div class="cap">Avg fleet kWh per weekday, by hour of day (local, as recorded). Weekends excluded.</div>
+    </div>
+    <div class="chart-card">
+      <div id="chart-tou-heatmap" class="chart"></div>
+      <div class="seq-legend" style="margin-top:8px;"><span>low</span><span class="bar"></span><span>high · up to 5946 kWh</span></div>
+      <div class="cap">Fleet discharge (kWh), summed across the full period, by weekday × hour.</div>
+    </div>
+    <div class="findings">
+      <div class="finding"><span class="dot"></span><p>Peak discharge is <b>16:00</b> (151 kWh per weekday, fleet average).</p></div>
+      <div class="finding"><span class="dot"></span><p>Peak charge is <b>08:00</b> (88 kWh per weekday, fleet average).</p></div>
+    </div>
+    <div class="footer"><span>SLIDE 4 / 9</span><span>Sitecharge · THROUGHPUT SUMMARY</span></div>
+  </section>
+
+  <!-- SLIDE 4: DAILY INTENSITY -->
+  <section class="slide">
+    <div class="eyebrow"><span class="num">04</span> DAILY INTENSITY, FULL PERIOD</div>
+    <h2>Daily fleet cycling</h2>
+    <div class="chart-card">
+      <div id="chart-efc-line" class="chart"></div>
+      <div class="cap">Fleet-wide EFC per day (capacity-normalised, summed across 4 units). A day with every unit completing one full cycle reads 4.</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="v">1.33</div><div class="l">mean fleet EFC / day</div></div>
+      <div class="stat"><div class="v">1.16</div><div class="l">median fleet EFC / day</div></div>
+      <div class="stat"><div class="v">10.80</div><div class="l">max fleet EFC / day</div></div>
+    </div>
+    <div class="findings">
+      <div class="finding"><span class="dot"></span><p>Mean daily fleet EFC is 1.33; the median is 1.16.</p></div>
+      <div class="finding"><span class="dot"></span><p>The <b>10.80 maximum</b> is 2.7× the "everyone cycles once" reading of 4.</p></div>
+    </div>
+    <div class="footer"><span>SLIDE 5 / 9</span><span>SCE-500 · THROUGHPUT SUMMARY</span></div>
+  </section>
+
+  <!-- SLIDE 5: ROUND-TRIP EFFICIENCY -->
+  <section class="slide">
+    <div class="eyebrow"><span class="num">05</span> ROUND-TRIP EFFICIENCY</div>
+    <h2>Round-trip efficiency by unit</h2>
+    <div class="grid2">
+      <div class="chart-card">
+        <div id="chart-efficiency" class="chart"></div>
+        <div class="cap">Per-cycle kWh out / kWh in, cycles with &gt;5 kWh both in and out. Bars = median; whiskers = p10–p90.</div>
+      </div>
+      <div>
+        <table class="data">
+          <tr><th>Unit</th><th>Cycles</th><th>Median</th><th>p10–p90</th></tr>
+          <tr><td><span class="swatch" style="background:var(--u1)"></span>0001</td><td>116</td><td>78.9%</td><td>63.5–93.4%</td></tr>
+          <tr><td><span class="swatch" style="background:var(--u2)"></span>0002</td><td>78</td><td>80.4%</td><td>62.6–89.9%</td></tr>
+          <tr><td><span class="swatch" style="background:var(--u3)"></span>0003</td><td>103</td><td>79.0%</td><td>64.1–92.3%</td></tr>
+          <tr><td><span class="swatch" style="background:var(--u4)"></span>0004</td><td>101</td><td>80.0%</td><td>67.0–92.0%</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="findings">
+      <div class="finding"><span class="dot"></span><p>Unit medians range from 78.9% to 80.4%.</p></div>
+    </div>
+    <div class="footer"><span>SLIDE 6 / 9</span><span>SCE-500 · THROUGHPUT SUMMARY</span></div>
+  </section>
+
+  <!-- SLIDE 6: CHARGE TIME -->
+  <section class="slide">
+    <div class="eyebrow"><span class="num">06</span> CHARGE TIME</div>
+    <h2>Equivalent full-charge time by unit</h2>
+    <div class="grid2">
+      <div class="chart-card">
+        <div id="chart-charge-time" class="chart"></div>
+        <div class="cap">Median equivalent time to a full 0–100% charge (each session's own rate, projected across a full swing). Sessions gaining &lt;5% SoC excluded.</div>
+      </div>
+      <div>
+        <table class="data">
+          <tr><th>Unit</th><th>Sessions</th><th>Median (h)</th><th>Mean (h)</th></tr>
+          <tr><td><span class="swatch" style="background:var(--u1)"></span>0001</td><td>187</td><td>6.24</td><td>10.54</td></tr>
+          <tr><td><span class="swatch" style="background:var(--u2)"></span>0002</td><td>140</td><td>5.22</td><td>8.45</td></tr>
+          <tr><td><span class="swatch" style="background:var(--u3)"></span>0003</td><td>167</td><td>5.51</td><td>10.36</td></tr>
+          <tr><td><span class="swatch" style="background:var(--u4)"></span>0004</td><td>151</td><td>4.15</td><td>5.86</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="v">5.17h</div><div class="l">fleet median equiv. full charge</div></div>
+    </div>
+    <div class="findings">
+      <div class="finding"><span class="dot"></span><p><b>0004</b> charges fastest (median 4.15h to an equivalent full charge); <b>0001</b> is slowest (6.24h).</p></div>
+    </div>
+    <div class="footer"><span>SLIDE 7 / 9</span><span>SCE-500 · THROUGHPUT SUMMARY</span></div>
+  </section>
+
+  <!-- SLIDE 7: DISTRIBUTION OF USAGE -->
+  <section class="slide">
+    <div class="eyebrow"><span class="num">07</span> DISTRIBUTION OF USAGE PER UNIT</div>
+    <h2>Daily cycling distribution by unit</h2>
+    <div class="two-figs">
+      <div class="chart-card">
+        <div id="chart-boxplot" class="chart"></div>
+        <div class="cap">Spread: EFC/day per unit. Box = IQR, line = median, whiskers = 1.5×IQR, dots = points beyond.</div>
+      </div>
+      <div class="chart-card">
+        <div id="chart-hist" class="chart"></div>
+        <div class="cap">Shape: same data as histograms, one panel per unit (EFC/day, clipped at 2.0).</div>
+      </div>
+    </div>
+    <table class="data">
+      <tr><th>Unit</th><th>Median</th><th>IQR</th><th>p90</th><th>Max</th></tr>
+      <tr><td><span class="swatch" style="background:var(--u1)"></span>0001</td><td>0.70</td><td>0.52–0.83</td><td>1.27</td><td>7.65</td></tr>
+      <tr><td><span class="swatch" style="background:var(--u2)"></span>0002</td><td>0.71</td><td>0.40–0.78</td><td>1.05</td><td>5.01</td></tr>
+      <tr><td><span class="swatch" style="background:var(--u3)"></span>0003</td><td>0.64</td><td>0.43–0.81</td><td>1.29</td><td>10.80</td></tr>
+      <tr><td><span class="swatch" style="background:var(--u4)"></span>0004</td><td>0.73</td><td>0.56–0.78</td><td>1.10</td><td>1.95</td></tr>
+    </table>
+    <div class="findings">
+      <div class="finding"><span class="dot"></span><p>Unit daily medians range from 0.64 to 0.73 EFC.</p></div>
+      <div class="finding"><span class="dot"></span><p><b>0003's maximum is 10.80 EFC</b>; the highest maximum among the other units is 7.65.</p></div>
+    </div>
+    <div class="footer"><span>SLIDE 8 / 9</span><span>SCE-500 · THROUGHPUT SUMMARY</span></div>
+  </section>
+
+  <!-- SLIDE 8: TAKEAWAYS -->
+  <section class="slide">
+    <div class="eyebrow"><span class="num">08</span> SUMMARY</div>
+    <h2>Seven takeaways for the deck</h2>
+    <ol class="takeaways">
+      <li><div><b>Monthly throughput.</b><span>September is the highest full month at 26.1 MWh.</span></div></li>
+      <li><div><b>Weekly rhythm.</b><span>Tuesday and Wednesday average 778 and 723 kWh. Saturday averages 36% of Monday–Friday.</span></div></li>
+      <li><div><b>Time of use.</b><span>Fleet discharge peaks at 16:00 and charging peaks at 08:00 on weekdays.</span></div></li>
+      <li><div><b>Daily cycling.</b><span>Median fleet EFC is 1.16/day; the highest day reaches 10.80.</span></div></li>
+      <li><div><b>Efficiency.</b><span>Unit median round-trip efficiency ranges from 78.9% to 80.4%.</span></div></li>
+      <li><div><b>Charge time.</b><span>Fleet median equivalent full-charge time is 5.17h. The fastest unit is 0004.</span></div></li>
+      <li><div><b>Unit distribution.</b><span>Unit daily medians range from 0.64 to 0.73 EFC; 0003 has the highest single day at 10.80 EFC.</span></div></li>
+    </ol>
+    <div class="methodnote">EFC figures use pack-outage-corrected capacity (packs reading near-zero current while siblings are active are excluded from that day's capacity rather than assuming full 6-pack nameplate). Same correction as <span class="mono">fleet_findings.ipynb</span>.</div>
+    <div class="footer"><span>SLIDE 9 / 9</span><span>SCE-500 · THROUGHPUT SUMMARY</span></div>
+  </section>
+
+</div>
+
+<div id="tooltip" class="tooltip"></div>
+
+<script>
+const DATA = {"units":["SCE-500-0001","SCE-500-0002","SCE-500-0003","SCE-500-0004"],"months":["2026-01","2026-02","2026-03","2026-04","2026-05","2026-06","2026-07","2026-08","2026-09","2026-10"],"fleet_monthly":[0.0,4990.8,10842.6,14241.7,12780.2,19493.0,16274.2,14892.3,26064.1,6969.9],"fleet_monthly_ymax":30000,"fleet_monthly_yticks":[0,10000,20000,30000],"per_live_unit_monthly":[0.0,3493.6,2948.4,3560.4,3195.1,4873.2,4068.6,3723.1,6516.0,1742.5],"per_live_ymax":8000,"per_live_yticks":[0,2000,4000,6000,8000],"go_live":{"SCE-500-0001":"2026-01-29","SCE-500-0002":"2026-02-17","SCE-500-0003":"2026-03-01","SCE-500-0004":"2026-03-11"},"weekday_kwh":{"Monday":609.2,"Tuesday":778.4,"Wednesday":723.4,"Thursday":629.5,"Friday":569.2,"Saturday":239.3,"Sunday":10.1},"weekday_ymax":1000.0,"weekday_yticks":[0.0,250.0,500.0,750.0,1000.0],"tou_hourly_out":[0.47,0.49,0.3,1.55,0.72,3.74,6.3,13.67,19.92,40.77,21.67,24.01,58.47,33.71,13.55,49.55,151.41,141.31,56.47,14.6,3.38,2.88,2.37,0.58],"tou_hourly_in":[6.66,5.24,3.95,2.83,2.28,8.55,22.19,84.56,88.35,69.8,68.27,53.69,48.21,59.67,58.79,41.17,33.82,32.2,27.53,23.65,21.28,15.87,12.81,10.49],"tou_hourly_ymax":200,"tou_hourly_yticks":[0,50,100,150,200],"tou_heatmap_rows":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],"tou_heatmap":[[3.1,3.0,2.9,2.7,2.6,2.6,27.9,234.7,470.1,1238.6,346.0,582.3,1680.5,992.2,601.9,1479.0,4994.1,5188.0,2165.5,661.1,243.2,254.2,105.2,41.5],[41.3,41.1,8.6,2.9,2.8,3.3,97.0,755.6,1046.6,2174.3,1610.1,1462.8,2832.9,2028.6,458.2,1881.3,5946.3,4594.6,2017.9,707.9,142.3,105.1,47.7,13.0],[7.7,5.4,10.2,44.0,31.7,150.7,151.5,549.0,556.3,1387.8,610.2,652.2,2917.9,1627.1,574.6,1976.1,5665.0,5293.0,2222.3,487.0,28.2,104.5,243.8,22.1],[13.9,19.4,18.8,18.5,18.4,260.4,252.1,389.7,549.6,1590.9,642.4,841.9,1916.1,1063.1,648.4,1694.4,5424.5,5263.7,1772.5,185.9,11.9,27.4,19.2,19.6],[17.1,18.8,12.2,208.5,72.5,249.6,592.2,504.2,923.4,866.1,648.1,734.5,1059.7,289.8,128.6,1789.8,4921.3,4813.7,1873.8,557.4,175.1,21.7,6.9,6.2],[5.5,4.5,4.0,3.8,3.6,24.8,274.3,630.4,464.3,941.9,309.8,679.7,1126.5,829.6,659.3,1115.2,693.9,220.0,204.5,140.4,16.2,15.4,5.1,4.0],[3.8,3.5,3.4,3.2,3.0,3.0,3.0,65.7,12.3,4.3,39.5,114.8,5.8,5.9,5.8,5.7,5.8,4.9,4.4,4.4,40.2,5.3,3.3,3.2]],"tou_heatmap_max":5946.3,"fleet_daily_efc_dates":["2026-02-07","2026-02-08","2026-02-09","2026-02-10","2026-02-11","2026-02-12","2026-02-13","2026-02-14","2026-02-15","2026-02-16","2026-02-17","2026-02-18","2026-02-19","2026-02-20","2026-02-21","2026-02-22","2026-02-23","2026-02-24","2026-02-25","2026-02-26","2026-02-27","2026-02-28","2026-03-01","2026-03-02","2026-03-03","2026-03-04","2026-03-05","2026-03-06","2026-03-07","2026-03-08","2026-03-09","2026-03-10","2026-03-11","2026-03-12","2026-03-13","2026-03-14","2026-03-15","2026-03-16","2026-03-17","2026-03-18","2026-03-19","2026-03-20","2026-03-21","2026-03-22","2026-03-23","2026-03-24","2026-03-25","2026-03-26","2026-03-27","2026-03-28","2026-03-29","2026-03-30","2026-03-31","2026-04-01","2026-04-02","2026-04-03","2026-04-04","2026-04-05","2026-04-06","2026-04-07","2026-04-08","2026-04-09","2026-04-10","2026-04-11","2026-04-12","2026-04-13","2026-04-14","2026-04-15","2026-04-16","2026-04-17","2026-04-18","2026-04-19","2026-04-20","2026-04-21","2026-04-22","2026-04-23","2026-04-24","2026-04-25","2026-04-26","2026-04-27","2026-04-28","2026-04-29","2026-04-30","2026-05-01","2026-05-02","2026-05-03","2026-05-04","2026-05-05","2026-05-06","2026-05-07","2026-05-08","2026-05-09","2026-05-10","2026-05-11","2026-05-12","2026-05-13","2026-05-14","2026-05-15","2026-05-16","2026-05-17","2026-05-18","2026-05-19","2026-05-20","2026-05-21","2026-05-22","2026-05-23","2026-05-24","2026-05-25","2026-05-26","2026-05-27","2026-05-28","2026-05-29","2026-05-30","2026-05-31","2026-06-01","2026-06-02","2026-06-03","2026-06-04","2026-06-05","2026-06-06","2026-06-07","2026-06-08","2026-06-09","2026-06-10","2026-06-11","2026-06-12","2026-06-13","2026-06-14","2026-06-15","2026-06-16","2026-06-17","2026-06-18","2026-06-19","2026-06-20","2026-06-21","2026-06-22","2026-06-23","2026-06-24","2026-06-25","2026-06-26","2026-06-27","2026-06-28","2026-06-29","2026-06-30","2026-07-01","2026-07-02","2026-07-03","2026-07-04","2026-07-05","2026-07-06","2026-07-07","2026-07-08","2026-07-09","2026-07-10","2026-07-11","2026-07-12","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22","2026-07-23","2026-07-24","2026-07-25","2026-07-26","2026-07-27","2026-07-28","2026-07-29","2026-07-30","2026-07-31","2026-08-01","2026-08-02","2026-08-03","2026-08-04","2026-08-05","2026-08-06","2026-08-07","2026-08-08","2026-08-09","2026-08-10","2026-08-11","2026-08-12","2026-08-13","2026-08-14","2026-08-15","2026-08-16","2026-08-17","2026-08-18","2026-08-19","2026-08-20","2026-08-21","2026-08-22","2026-08-23","2026-08-24","2026-08-25","2026-08-26","2026-08-27","2026-08-28","2026-08-29","2026-08-30","2026-08-31","2026-09-01","2026-09-02","2026-09-03","2026-09-04","2026-09-05","2026-09-06","2026-09-07","2026-09-08","2026-09-09","2026-09-10","2026-09-11","2026-09-12","2026-09-13","2026-09-14","2026-09-15","2026-09-16","2026-09-17","2026-09-18","2026-09-19","2026-09-20","2026-09-21","2026-09-22","2026-09-23","2026-09-24","2026-09-25","2026-09-26","2026-09-27","2026-09-28","2026-09-29","2026-09-30","2026-10-01","2026-10-02"],"fleet_daily_efc_values":[0.832,0.0,0.002,0.025,0.14,0.4,0.973,0.008,0.004,1.622,1.023,0.717,0.715,1.441,0.271,0.0,1.058,0.674,1.523,0.754,1.322,0.0,0.0,0.057,0.757,1.903,0.498,2.51,0.001,0.0,0.647,1.868,0.748,0.853,0.813,0.419,0.005,1.033,1.194,1.462,2.216,1.256,0.009,0.01,1.226,1.166,0.974,1.65,2.019,0.035,0.0,2.007,1.016,3.597,3.349,0.687,0.0,0.0,0.0,1.549,1.258,2.807,1.327,1.177,0.651,0.649,2.062,2.111,1.295,2.295,0.394,0.738,1.369,1.542,0.526,0.844,2.11,0.0,0.0,0.0,2.178,1.163,0.004,0.641,0.0,0.487,0.0,1.413,0.686,0.0,0.77,0.0,0.0,1.52,1.399,0.711,1.915,3.322,0.644,0.552,1.764,2.007,2.004,2.079,1.487,1.066,0.0,1.534,3.038,0.75,2.131,1.276,0.691,0.0,2.563,2.045,3.165,2.034,1.627,1.419,0.0,3.358,2.896,2.371,2.157,1.49,1.364,1.196,0.762,1.855,3.233,1.152,2.235,1.104,0.0,0.681,1.923,1.754,1.657,1.087,1.504,0.684,0.555,2.215,0.909,1.135,0.674,0.568,0.0,0.542,2.264,1.288,1.243,1.85,1.941,0.0,0.742,3.005,2.147,1.445,2.181,0.55,0.0,3.146,1.492,2.096,2.031,1.173,0.834,0.0,6.796,0.764,0.605,1.243,1.309,1.935,0.0,0.726,0.874,1.609,1.456,0.874,0.906,0.0,1.431,2.199,0.971,3.541,2.269,1.05,0.0,1.662,1.857,1.337,2.24,1.251,1.25,0.0,1.363,1.901,1.496,1.625,0.661,0.0,0.0,0.0,0.339,1.608,0.458,2.654,0.308,0.0,0.0,2.731,3.034,2.576,1.749,2.36,0.0,1.27,4.449,2.437,3.376,4.554,3.28,0.607,6.257,8.384,0.0,1.158,10.798,0.0,0.0,1.343,0.727,1.482,0.0,5.938],"efc_line_ymax":15,"efc_line_yticks":[0,5,10,15],"efficiency":{"SCE-500-0001":{"n":116,"median":0.789,"p10":0.635,"p90":0.934},"SCE-500-0002":{"n":78,"median":0.804,"p10":0.626,"p90":0.899},"SCE-500-0003":{"n":103,"median":0.79,"p10":0.641,"p90":0.923},"SCE-500-0004":{"n":101,"median":0.8,"p10":0.67,"p90":0.92}},"charge_time":{"SCE-500-0001":{"median_h":6.24,"mean_h":10.54,"n":187},"SCE-500-0002":{"median_h":5.22,"mean_h":8.45,"n":140},"SCE-500-0003":{"median_h":5.51,"mean_h":10.36,"n":167},"SCE-500-0004":{"median_h":4.15,"mean_h":5.86,"n":151}},"charge_ymax":8,"charge_yticks":[0,2,4,6,8],"box_stats":{"SCE-500-0001":{"q1":0.515,"median":0.698,"q3":0.833,"whisker_lo":0.055,"whisker_hi":1.301,"outliers":[0.001,0.002,0.002,0.002,0.004,0.004,0.004,0.005,0.005,0.005,0.008,0.025,1.322,1.387,1.467,1.502,1.534,1.607,1.622,2.099,2.662,3.094,7.65],"min":0.001,"max":7.65},"SCE-500-0002":{"q1":0.395,"median":0.711,"q3":0.783,"whisker_lo":0.0,"whisker_hi":1.19,"outliers":[1.419,1.427,1.432,1.481,1.934,5.006],"min":0.0,"max":5.006},"SCE-500-0003":{"q1":0.431,"median":0.639,"q3":0.806,"whisker_lo":0.0,"whisker_hi":1.294,"outliers":[1.371,1.371,1.474,1.671,1.694,1.934,2.937,5.524,5.938,10.798],"min":0.0,"max":10.798},"SCE-500-0004":{"q1":0.557,"median":0.726,"q3":0.777,"whisker_lo":0.264,"whisker_hi":1.058,"outliers":[0.001,0.002,0.002,0.003,0.004,0.004,0.073,0.154,1.12,1.126,1.14,1.2,1.229,1.239,1.243,1.343,1.562,1.566,1.948],"min":0.001,"max":1.948}},"box_ymax":2.0,"box_yticks":[0.0,0.5,1.0,1.5,2.0],"hist_bins":[0.0,0.1,0.2,0.30000000000000004,0.4,0.5,0.6000000000000001,0.7000000000000001,0.8,0.9,1.0,1.1,1.2000000000000002,1.3,1.4000000000000001,1.5,1.6,1.7000000000000002,1.8,1.9000000000000001,2.0],"hist_counts":{"SCE-500-0001":[14,2,2,6,6,9,22,28,5,4,5,2,3,3,1,2,2,0,0,4],"SCE-500-0002":[20,0,1,2,3,4,13,25,6,3,4,2,0,0,4,0,0,0,0,2],"SCE-500-0003":[11,2,1,10,10,16,18,12,5,5,2,3,3,2,1,0,2,0,0,5],"SCE-500-0004":[7,1,2,5,5,9,15,38,3,6,2,3,4,1,0,2,0,0,0,1]},"hist_max_count":38,"summary":{"start_date":"2026-01-29","end_date":"2026-10-06","total_cycles":398,"total_throughput_kwh":126548.9,"fleet_charge_median_h":5.17,"saturday_pct_weekday":36}};
+const NS = "http://www.w3.org/2000/svg";
+
+function el(tag, attrs){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function htmlEl(tag, attrs){
+  const e = document.createElement(tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+const tooltip = document.getElementById('tooltip');
+function showTip(evt, html){
+  tooltip.innerHTML = html;
+  tooltip.style.display = 'block';
+  moveTip(evt);
+}
+function moveTip(evt){
+  const pad = 16;
+  let x = evt.clientX + pad, y = evt.clientY + pad;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top = y + 'px';
+  const rect = tooltip.getBoundingClientRect();
+  if (rect.right > window.innerWidth - 8) tooltip.style.left = (evt.clientX - rect.width - pad) + 'px';
+  if (rect.bottom > window.innerHeight - 8) tooltip.style.top = (evt.clientY - rect.height - pad) + 'px';
+}
+function hideTip(){ tooltip.style.display = 'none'; }
+function attachTip(node, htmlFn){
+  node.addEventListener('mouseenter', e => showTip(e, htmlFn()));
+  node.addEventListener('mousemove', moveTip);
+  node.addEventListener('mouseleave', hideTip);
+}
+
+function monthLabel(m){
+  const names = {"01":"Jan","02":"Feb","03":"Mar","04":"Apr","05":"May","06":"Jun","07":"Jul","08":"Aug","09":"Sep","10":"Oct","11":"Nov","12":"Dec"};
+  return names[m.split("-")[1]];
+}
+
+// ---- generic categorical bar chart ----
+function barChart({container, categories, values, color, yMax, yTicks, yFmt, w, h, tooltipFn, goLiveMonths}){
+  const margin = {top:14, right:14, bottom:26, left:42};
+  const iw = w - margin.left - margin.right, ih = h - margin.top - margin.bottom;
+  const svg = el('svg', {viewBox:`0 0 ${w} ${h}`, class:'chart-svg', style:`aspect-ratio:${w}/${h}`});
+  const g = el('g', {transform:`translate(${margin.left},${margin.top})`});
+  svg.appendChild(g);
+
+  const y = v => ih - (v / yMax) * ih;
+  yTicks.forEach(t => {
+    g.appendChild(el('line', {x1:0, x2:iw, y1:y(t), y2:y(t), class:'grid-line'}));
+    const lbl = el('text', {x:-8, y:y(t)+3, class:'tick-label', 'text-anchor':'end'});
+    lbl.textContent = yFmt(t);
+    g.appendChild(lbl);
+  });
+  g.appendChild(el('line', {x1:0, x2:iw, y1:ih, y2:ih, class:'axis-line'}));
+
+  const n = categories.length;
+  const step = iw / n;
+  const bw = Math.min(30, step * 0.56);
+
+  if (goLiveMonths){
+    const seen = new Set();
+    goLiveMonths.forEach(m => {
+      const idx = DATA.months.indexOf(m);
+      if (idx < 0 || seen.has(idx)) return;
+      seen.add(idx);
+      const lx = idx * step;
+      g.appendChild(el('line', {x1:lx, x2:lx, y1:0, y2:ih, class:'go-live-line'}));
+    });
+  }
+
+  const colorFn = typeof color === 'function' ? color : () => color;
+
+  values.forEach((v, i) => {
+    const cx = i * step + step/2;
+    const bx = cx - bw/2;
+    const barH = (v/yMax) * ih;
+    const by = ih - barH;
+    const r = Math.min(4, bw/2, barH);
+    let d;
+    if (barH <= 0.5) {
+      d = `M${bx},${ih} h${bw} v0 h${-bw} Z`;
+    } else {
+      d = `M${bx},${ih} L${bx},${by+r} Q${bx},${by} ${bx+r},${by} L${bx+bw-r},${by} Q${bx+bw},${by} ${bx+bw},${by+r} L${bx+bw},${ih} Z`;
+    }
+    g.appendChild(el('path', {d, fill:colorFn(i)}));
+
+    const hit = el('rect', {x:i*step, y:0, width:step, height:ih, class:'hit', style:`color:${colorFn(i)}`});
+    attachTip(hit, () => tooltipFn(i, v));
+    g.appendChild(hit);
+
+    const label = el('text', {x:cx, y:ih+18, class:'tick-label', 'text-anchor':'middle'});
+    label.textContent = categories[i];
+    g.appendChild(label);
+  });
+
+  document.getElementById(container).appendChild(svg);
+}
+
+// ---- fleet monthly throughput ----
+barChart({
+  container:'chart-monthly',
+  categories: DATA.months.map(monthLabel),
+  values: DATA.fleet_monthly,
+  color: 'var(--accent)',
+  yMax: DATA.fleet_monthly_ymax, yTicks: DATA.fleet_monthly_yticks, yFmt:t=>t===0?'0':(t/1000)+'k',
+  w:480, h:250,
+  goLiveMonths: Object.values(DATA.go_live).map(d=>d.slice(0,7)),
+  tooltipFn: (i,v) => `<b>${DATA.months[i]}</b><br>${v.toLocaleString(undefined,{maximumFractionDigits:0})} kWh fleet total`
+});
+
+// ---- per-live-unit monthly throughput ----
+barChart({
+  container:'chart-per-live',
+  categories: DATA.months.map(monthLabel),
+  values: DATA.per_live_unit_monthly,
+  color: 'var(--accent)',
+  yMax: DATA.per_live_ymax, yTicks: DATA.per_live_yticks, yFmt:t=>t===0?'0':(t/1000)+'k',
+  w:480, h:250,
+  goLiveMonths: Object.values(DATA.go_live).map(d=>d.slice(0,7)),
+  tooltipFn: (i,v) => `<b>${DATA.months[i]}</b><br>${v.toLocaleString(undefined,{maximumFractionDigits:0})} kWh per live unit`
+});
+
+// ---- weekday rhythm ----
+const dowOrder = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+barChart({
+  container:'chart-weekday',
+  categories: dowOrder.map(d=>d.slice(0,3)),
+  values: dowOrder.map(d=>DATA.weekday_kwh[d]),
+  color: 'var(--accent)',
+  yMax: DATA.weekday_ymax, yTicks: DATA.weekday_yticks, yFmt:t=>t.toString(),
+  w:460, h:250,
+  tooltipFn: (i,v) => `<b>${dowOrder[i]}</b><br>${v.toFixed(1)} kWh avg fleet throughput`
+});
+
+// ---- time of use: hourly grouped bars ----
+(function(){
+  const w=1000, h=260, margin={top:14,right:14,bottom:30,left:42};
+  const iw=w-margin.left-margin.right, ih=h-margin.top-margin.bottom;
+  const svg = el('svg', {viewBox:`0 0 ${w} ${h}`, class:'chart-svg', style:`aspect-ratio:${w}/${h}`});
+  const g = el('g', {transform:`translate(${margin.left},${margin.top})`});
+  svg.appendChild(g);
+  const yMax = DATA.tou_hourly_ymax;
+  const y = v => ih - (v/yMax)*ih;
+  DATA.tou_hourly_yticks.forEach(t=>{
+    g.appendChild(el('line',{x1:0,x2:iw,y1:y(t),y2:y(t),class:'grid-line'}));
+    const lbl = el('text',{x:-8,y:y(t)+3,class:'tick-label','text-anchor':'end'});
+    lbl.textContent = t;
+    g.appendChild(lbl);
+  });
+  g.appendChild(el('line',{x1:0,x2:iw,y1:ih,y2:ih,class:'axis-line'}));
+  const n=24, step=iw/n, bw=Math.min(12, step*0.38);
+  for (let hour=0; hour<24; hour++){
+    const cx = hour*step + step/2;
+    [{v:DATA.tou_hourly_out[hour], color:'var(--u1)', off:-1, label:'discharge'},
+     {v:DATA.tou_hourly_in[hour], color:'var(--u2)', off:1, label:'charge'}].forEach(s => {
+      const bx = cx + s.off*(bw/2+1) - bw/2;
+      const barH = (s.v/yMax)*ih;
+      g.appendChild(el('rect',{x:bx,y:ih-barH,width:bw,height:barH,fill:s.color}));
+    });
+    const hit = el('rect',{x:hour*step,y:0,width:step,height:ih,class:'hit',style:'color:var(--accent)'});
+    attachTip(hit, () => `<b>${String(hour).padStart(2,'0')}:00</b><br>discharge ${DATA.tou_hourly_out[hour].toFixed(1)} kWh<br>charge ${DATA.tou_hourly_in[hour].toFixed(1)} kWh`);
+    g.appendChild(hit);
+    if (hour % 2 === 0){
+      const lbl = el('text',{x:cx,y:ih+18,class:'tick-label','text-anchor':'middle'});
+      lbl.textContent = String(hour).padStart(2,'0');
+      g.appendChild(lbl);
+    }
+  }
+  document.getElementById('chart-tou-hourly').appendChild(svg);
+})();
+
+// ---- time of use: weekday x hour heatmap ----
+(function(){
+  const rows = DATA.tou_heatmap_rows, grid = DATA.tou_heatmap, vmax = DATA.tou_heatmap_max;
+  const w=1000, h=190, margin={top:6,right:14,bottom:24,left:70};
+  const iw=w-margin.left-margin.right, ih=h-margin.top-margin.bottom;
+  const svg = el('svg', {viewBox:`0 0 ${w} ${h}`, class:'chart-svg', style:`aspect-ratio:${w}/${h}`});
+  const g = el('g', {transform:`translate(${margin.left},${margin.top})`});
+  svg.appendChild(g);
+
+  const cs = getComputedStyle(document.documentElement);
+  const lo = cs.getPropertyValue('--seq-lo').trim();
+  const hi = cs.getPropertyValue('--seq-hi').trim();
+  const parseHex = h => [1,3,5].map(i => parseInt(h.slice(i,i+2),16));
+  const [lr,lg,lb] = parseHex(lo), [hr,hgc,hb] = parseHex(hi);
+  const lerp = t => `rgb(${Math.round(lr+(hr-lr)*t)},${Math.round(lg+(hgc-lg)*t)},${Math.round(lb+(hb-lb)*t)})`;
+
+  const rowH = ih / rows.length, colW = iw / 24;
+  rows.forEach((row, ri) => {
+    grid[ri].forEach((v, hour) => {
+      const t = Math.sqrt(Math.max(0, Math.min(1, v / vmax)));
+      const rect = el('rect', {x:hour*colW+0.5, y:ri*rowH+0.5, width:colW-1, height:rowH-1, fill:lerp(t), rx:2});
+      g.appendChild(rect);
+      const hit = el('rect', {x:hour*colW, y:ri*rowH, width:colW, height:rowH, class:'hit', style:'color:var(--accent)'});
+      attachTip(hit, () => `<b>${row}, ${String(hour).padStart(2,'0')}:00</b><br>${v.toFixed(0)} kWh (full period)`);
+      g.appendChild(hit);
+    });
+    const lbl = el('text', {x:-8, y:ri*rowH+rowH/2+4, class:'tick-label', 'text-anchor':'end'});
+    lbl.textContent = row.slice(0,3);
+    g.appendChild(lbl);
+  });
+  for (let hour=0; hour<24; hour+=2){
+    const lbl = el('text', {x:hour*colW+colW/2, y:ih+16, class:'tick-label', 'text-anchor':'middle'});
+    lbl.textContent = String(hour).padStart(2,'0');
+    g.appendChild(lbl);
+  }
+  document.getElementById('chart-tou-heatmap').appendChild(svg);
+})();
+
+// ---- round-trip efficiency ----
+(function(){
+  const units = DATA.units;
+  const w=460, h=280, margin={top:14,right:14,bottom:26,left:42};
+  const iw=w-margin.left-margin.right, ih=h-margin.top-margin.bottom;
+  const svg = el('svg', {viewBox:`0 0 ${w} ${h}`, class:'chart-svg', style:`aspect-ratio:${w}/${h}`});
+  const g = el('g', {transform:`translate(${margin.left},${margin.top})`});
+  svg.appendChild(g);
+  const yMax=100;
+  const y = v => ih - (v/yMax)*ih;
+  [0,20,40,60,80,100].forEach(t=>{
+    g.appendChild(el('line',{x1:0,x2:iw,y1:y(t),y2:y(t),class:'grid-line'}));
+    const lbl = el('text',{x:-8,y:y(t)+3,class:'tick-label','text-anchor':'end'});
+    lbl.textContent = t+'%';
+    g.appendChild(lbl);
+  });
+  g.appendChild(el('line',{x1:0,x2:iw,y1:ih,y2:ih,class:'axis-line'}));
+  const n=units.length, step=iw/n, bw=Math.min(34, step*0.5);
+  units.forEach((u,i)=>{
+    const stat = DATA.efficiency[u];
+    const color = `var(--u${i+1})`;
+    const cx = i*step + step/2;
+    const bx = cx - bw/2;
+    const barH = (stat.median*100/yMax)*ih;
+    const by = ih-barH;
+    const r = Math.min(4,bw/2,barH);
+    const d = `M${bx},${ih} L${bx},${by+r} Q${bx},${by} ${bx+r},${by} L${bx+bw-r},${by} Q${bx+bw},${by} ${bx+bw},${by+r} L${bx+bw},${ih} Z`;
+    g.appendChild(el('path',{d, fill:color}));
+    const capw = bw*0.5;
+    const yLo = y(stat.p10*100), yHi = y(stat.p90*100);
+    g.appendChild(el('line',{x1:cx,x2:cx,y1:yHi,y2:yLo,stroke:'var(--ink)','stroke-width':1.5}));
+    g.appendChild(el('line',{x1:cx-capw/2,x2:cx+capw/2,y1:yHi,y2:yHi,stroke:'var(--ink)','stroke-width':1.5}));
+    g.appendChild(el('line',{x1:cx-capw/2,x2:cx+capw/2,y1:yLo,y2:yLo,stroke:'var(--ink)','stroke-width':1.5}));
+    const hit = el('rect',{x:i*step,y:0,width:step,height:ih,class:'hit',style:`color:${color}`});
+    attachTip(hit, () => `<b>${u.slice(-4)}</b><br>${stat.n} cycles<br>median ${(stat.median*100).toFixed(1)}%<br>p10–p90 ${(stat.p10*100).toFixed(1)}–${(stat.p90*100).toFixed(1)}%`);
+    g.appendChild(hit);
+    const label = el('text',{x:cx,y:ih+18,class:'tick-label','text-anchor':'middle'});
+    label.textContent = u.slice(-4);
+    g.appendChild(label);
+  });
+  document.getElementById('chart-efficiency').appendChild(svg);
+})();
+
+// ---- charge time per unit ----
+(function(){
+  const units = DATA.units;
+  barChart({
+    container:'chart-charge-time',
+    categories: units.map(u=>u.slice(-4)),
+    values: units.map(u=>DATA.charge_time[u].median_h),
+    color: i => `var(--u${i+1})`,
+    yMax: DATA.charge_ymax, yTicks: DATA.charge_yticks, yFmt:t=>t.toString(),
+    w:460, h:260,
+    tooltipFn: (i,v) => {
+      const u = units[i], s = DATA.charge_time[u];
+      return `<b>${u.slice(-4)}</b><br>median ${s.median_h.toFixed(2)}h<br>mean ${s.mean_h.toFixed(2)}h<br>${s.n} sessions`;
+    }
+  });
+})();
+
+// ---- fleet daily EFC line + area ----
+(function(){
+  const dates = DATA.fleet_daily_efc_dates, values = DATA.fleet_daily_efc_values;
+  const w=1000, h=260, margin={top:20,right:20,bottom:26,left:36};
+  const iw=w-margin.left-margin.right, ih=h-margin.top-margin.bottom;
+  const svg = el('svg', {viewBox:`0 0 ${w} ${h}`, class:'chart-svg', style:`aspect-ratio:${w}/${h}`});
+  const g = el('g', {transform:`translate(${margin.left},${margin.top})`});
+  svg.appendChild(g);
+  const n = values.length;
+  const yMax = DATA.efc_line_ymax;
+  const x = i => (i/(n-1))*iw;
+  const y = v => ih - (v/yMax)*ih;
+  DATA.efc_line_yticks.forEach(t=>{
+    g.appendChild(el('line',{x1:0,x2:iw,y1:y(t),y2:y(t),class:'grid-line'}));
+    const lbl = el('text',{x:-8,y:y(t)+3,class:'tick-label','text-anchor':'end'});
+    lbl.textContent = t;
+    g.appendChild(lbl);
+  });
+  g.appendChild(el('line',{x1:0,x2:iw,y1:ih,y2:ih,class:'axis-line'}));
+
+  let lastMonth = null;
+  dates.forEach((d,i)=>{
+    const m = d.slice(0,7);
+    if (m !== lastMonth){
+      lastMonth = m;
+      const lbl = el('text',{x:x(i),y:ih+18,class:'tick-label','text-anchor':'middle'});
+      lbl.textContent = monthLabel(m);
+      g.appendChild(lbl);
+    }
+  });
+
+  let areaD = `M${x(0)},${ih}`;
+  let lineD = `M${x(0)},${y(values[0])}`;
+  for (let i=0;i<n;i++){
+    areaD += ` L${x(i)},${y(values[i])}`;
+    if (i>0) lineD += ` L${x(i)},${y(values[i])}`;
+  }
+  areaD += ` L${x(n-1)},${ih} Z`;
+  g.appendChild(el('path',{d:areaD, fill:'var(--accent)', opacity:0.12}));
+  g.appendChild(el('path',{d:lineD, fill:'none', stroke:'var(--accent)', 'stroke-width':2, 'stroke-linejoin':'round'}));
+
+  const maxIdx = values.indexOf(Math.max(...values));
+  g.appendChild(el('circle',{cx:x(maxIdx), cy:y(values[maxIdx]), r:4, fill:'var(--accent)', stroke:'var(--panel-2)', 'stroke-width':2}));
+  const maxLbl = el('text',{x:x(maxIdx), y:y(values[maxIdx])-12, class:'value-label', 'text-anchor': maxIdx > n*0.8 ? 'end':'middle'});
+  maxLbl.textContent = `${values[maxIdx].toFixed(2)} · ${dates[maxIdx]}`;
+  g.appendChild(maxLbl);
+
+  const crosshair = el('line',{x1:0,x2:0,y1:0,y2:ih,class:'crosshair',style:'display:none'});
+  const dot = el('circle',{r:4,fill:'var(--accent)',stroke:'var(--panel-2)','stroke-width':2,style:'display:none'});
+  g.appendChild(crosshair); g.appendChild(dot);
+
+  const overlay = el('rect',{x:0,y:0,width:iw,height:ih,class:'hit',style:'color:var(--accent)'});
+  overlay.addEventListener('mousemove', evt => {
+    const rect = overlay.getBoundingClientRect();
+    const mx = evt.clientX - rect.left;
+    let idx = Math.round((mx/iw)*(n-1));
+    idx = Math.max(0, Math.min(n-1, idx));
+    crosshair.setAttribute('x1', x(idx)); crosshair.setAttribute('x2', x(idx));
+    crosshair.style.display='block';
+    dot.setAttribute('cx', x(idx)); dot.setAttribute('cy', y(values[idx]));
+    dot.style.display='block';
+    showTip(evt, `<b>${dates[idx]}</b><br>fleet EFC ${values[idx].toFixed(2)}`);
+  });
+  overlay.addEventListener('mouseleave', () => { crosshair.style.display='none'; dot.style.display='none'; hideTip(); });
+  g.appendChild(overlay);
+
+  document.getElementById('chart-efc-line').appendChild(svg);
+})();
+
+// ---- boxplot per unit ----
+(function(){
+  const units = DATA.units;
+  const w=420, h=280, margin={top:14,right:14,bottom:26,left:38};
+  const iw=w-margin.left-margin.right, ih=h-margin.top-margin.bottom;
+  const svg = el('svg', {viewBox:`0 0 ${w} ${h}`, class:'chart-svg', style:`aspect-ratio:${w}/${h}`});
+  const g = el('g', {transform:`translate(${margin.left},${margin.top})`});
+  svg.appendChild(g);
+  const yMax = DATA.box_ymax;
+  const y = v => ih - (v/yMax)*ih;
+  DATA.box_yticks.forEach(t=>{
+    g.appendChild(el('line',{x1:0,x2:iw,y1:y(t),y2:y(t),class:'grid-line'}));
+    const lbl = el('text',{x:-8,y:y(t)+3,class:'tick-label','text-anchor':'end'});
+    lbl.textContent = t;
+    g.appendChild(lbl);
+  });
+  g.appendChild(el('line',{x1:0,x2:iw,y1:ih,y2:ih,class:'axis-line'}));
+  const n=units.length, step=iw/n, bw=Math.min(46, step*0.5);
+  units.forEach((u,i)=>{
+    const s = DATA.box_stats[u];
+    const color = `var(--u${i+1})`;
+    const cx = i*step + step/2;
+    g.appendChild(el('line',{x1:cx,x2:cx,y1:y(s.whisker_hi),y2:y(s.q3),stroke:color,'stroke-width':1.5}));
+    g.appendChild(el('line',{x1:cx,x2:cx,y1:y(s.q1),y2:y(s.whisker_lo),stroke:color,'stroke-width':1.5}));
+    const capw = bw*0.4;
+    g.appendChild(el('line',{x1:cx-capw/2,x2:cx+capw/2,y1:y(s.whisker_hi),y2:y(s.whisker_hi),stroke:color,'stroke-width':1.5}));
+    g.appendChild(el('line',{x1:cx-capw/2,x2:cx+capw/2,y1:y(s.whisker_lo),y2:y(s.whisker_lo),stroke:color,'stroke-width':1.5}));
+    g.appendChild(el('rect',{x:cx-bw/2,y:y(s.q3),width:bw,height:y(s.q1)-y(s.q3),fill:color,opacity:0.28,stroke:color,'stroke-width':1.5}));
+    g.appendChild(el('line',{x1:cx-bw/2,x2:cx+bw/2,y1:y(s.median),y2:y(s.median),stroke:color,'stroke-width':2}));
+    s.outliers.forEach(v => {
+      g.appendChild(el('circle',{cx, cy:y(Math.min(v,yMax)), r:2.4, fill:color, opacity:0.45}));
+    });
+    const hit = el('rect',{x:i*step,y:0,width:step,height:ih,class:'hit',style:`color:${color}`});
+    attachTip(hit, () => `<b>${u.slice(-4)}</b><br>median ${s.median.toFixed(2)} EFC<br>IQR ${s.q1.toFixed(2)}–${s.q3.toFixed(2)}<br>range ${s.min.toFixed(2)}–${s.max.toFixed(2)}`);
+    g.appendChild(hit);
+    const label = el('text',{x:cx,y:ih+18,class:'tick-label','text-anchor':'middle'});
+    label.textContent = u.slice(-4);
+    g.appendChild(label);
+  });
+  document.getElementById('chart-boxplot').appendChild(svg);
+})();
+
+// ---- histograms, small multiples ----
+(function(){
+  const units = DATA.units;
+  const bins = DATA.hist_bins;
+  const yMax = DATA.hist_max_count;
+  const wrap = htmlEl('div', {class:'hist-grid'});
+  units.forEach((u,i) => {
+    const color = `var(--u${i+1})`;
+    const counts = DATA.hist_counts[u];
+    const w=220, h=170, margin={top:20,right:8,bottom:20,left:28};
+    const iw=w-margin.left-margin.right, ih=h-margin.top-margin.bottom;
+    const svg = el('svg', {viewBox:`0 0 ${w} ${h}`, class:'chart-svg', style:`aspect-ratio:${w}/${h}`});
+    const g = el('g', {transform:`translate(${margin.left},${margin.top})`});
+    svg.appendChild(g);
+    const title = el('text', {x:0, y:-7, class:'facet-title', style:`fill:${color}`});
+    title.textContent = u.slice(-4);
+    g.appendChild(title);
+    const y = v => ih - (v/yMax)*ih;
+    [0, yMax].forEach(t => {
+      const lbl = el('text',{x:-6,y:y(t)+3,class:'tick-label','text-anchor':'end'});
+      lbl.textContent = Math.round(t);
+      g.appendChild(lbl);
+    });
+    g.appendChild(el('line',{x1:0,x2:iw,y1:ih,y2:ih,class:'axis-line'}));
+    const xScale = v => (v/2.0)*iw;
+    counts.forEach((c, bi) => {
+      const x0 = xScale(bins[bi]), x1 = xScale(bins[bi+1]);
+      const barH = (c/yMax)*ih;
+      g.appendChild(el('rect',{x:x0+0.5,y:ih-barH,width:Math.max(0,x1-x0-1),height:barH,fill:color}));
+      const hit = el('rect',{x:x0,y:0,width:x1-x0,height:ih,class:'hit',style:`color:${color}`});
+      attachTip(hit, () => `<b>${u.slice(-4)}</b><br>${bins[bi].toFixed(1)}–${bins[bi+1].toFixed(1)} EFC<br>${c} days`);
+      g.appendChild(hit);
+    });
+    [0,1,2].forEach(v => {
+      const lbl = el('text',{x:xScale(v),y:ih+14,class:'tick-label','text-anchor':'middle'});
+      lbl.textContent = v;
+      g.appendChild(lbl);
+    });
+    svg.appendChild(g);
+    const card = htmlEl('div', {class:'facet'});
+    card.appendChild(svg);
+    wrap.appendChild(card);
+  });
+  document.getElementById('chart-hist').appendChild(wrap);
+})();
+</script>
